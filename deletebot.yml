@@ -1,0 +1,18 @@
+# user name at BCT
+user : deletebot
+# remove or make null for getpass; put in a password for auto
+password : null
+# BCT topic number
+topic : 850210
+# file with username blacklist, one per line
+lusers : lusers.txt
+
+# sleep this many seconds before reloading new messages
+# can be modified while bot is live
+sleep : 60
+
+# name of the file where cookies are stored
+cookiefile : cookies.lwp
+
+# for development, this can be ommitted or set to false
+debug : true
