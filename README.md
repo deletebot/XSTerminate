@@ -15,6 +15,15 @@ in Windows. In such cases, it will terminate gracefully and save
 cookie information.
 
 
+## Donations
+
+* BTC: 1HWu9Ant9CNmuJCG5MXi1z3F8F5Zi1o9sT
+* XST: SMFPrpKYQ6yxVesVEwNfQbsPCPveG6srBP
+* LTC: LZ7Rkvz5LeisP2GRmvQhUxuewe45h6tDf3
+* DOGE: DLdew3KSaL9kL2cLC6Pv7hVzDULtkDcZ6
+
+
+
 ## Usage
 
 ```
@@ -22,6 +31,7 @@ xsterminate deletebot.yml
 ```
 
 The file "deletebot.yml" is a yaml file with several settings.
+
 
 ## Configuration
 
