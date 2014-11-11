@@ -40,10 +40,12 @@ def set_exit_handler(func):
 
 
 def setup():
-  if len(sys.argv) != 2:
+  if len(sys.argv) == 1:
+    config_file = "deltebot.yml"
+  elif len(sys.argv) == 2:
+    config_file = sys.argv[1]
+  else:
     usage()
-
-  config_file = sys.argv[1]
   yml = open(config_file).read()
   config = yaml.load(yml)
 
@@ -206,7 +208,16 @@ def setup():
       for lnk, btn in links_buttons:
         links = lnk.findAll("a")
         if luser == links[0].text:
-          deletes.append((luser, btn.findAll("a")[-2]["href"]))
+          try:
+            deletes.append((luser, btn.findAll("a")[-2]["href"]))
+          except Exception, e:
+            with f as open("crashreport", "wa"):
+              f.write("============\nEXCEPTION\n\n")
+              f.write(str(e) + "\n\n")
+              f.write("Luser: %s\n\n" % luser)
+              f.write("--- HTML ---\n")
+              f.write(thread_html + "\n")
+              f.write("============\n")
       
     if deletes:
       for i, (u, d) in enumerate(deletes):
