@@ -197,6 +197,11 @@ def setup():
 
     soup = BeautifulSoup(thread_html)
 
+    if soup.findAll('a')[1].text == "login":
+      print "Session terminated, logging in again in 50 seconds."
+      time.sleep(50)
+      return
+
     user_links = soup.findAll('td', {'class': 'poster_info'})
     td_buttons = soup.findAll('td', {'class': 'td_buttons'})
 
@@ -211,7 +216,7 @@ def setup():
           try:
             deletes.append((luser, btn.findAll("a")[-2]["href"]))
           except Exception, e:
-            with f as open("crashreport", "wa"):
+            with open("crashreport", "wa") as f:
               f.write("============\nEXCEPTION\n\n")
               f.write(str(e) + "\n\n")
               f.write("Luser: %s\n\n" % luser)
@@ -229,7 +234,8 @@ def setup():
     time.sleep(config['sleep'])
 
 def main():
-  setup()
+  while True:
+    setup()
 
 if __name__ == "__main__":
   main()
