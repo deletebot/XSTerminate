@@ -14,6 +14,8 @@ import yaml
 
 from BeautifulSoup import BeautifulSoup
 
+__version__ = "0.9.0"
+
 class DeleteBotError(Exception):
   pass
 
@@ -234,6 +236,7 @@ def setup():
     time.sleep(config['sleep'])
 
 def main():
+  print "XSTerminate v%s" % __version__
   while True:
     setup()
 
