@@ -43,7 +43,7 @@ def set_exit_handler(func):
 
 def setup():
   if len(sys.argv) == 1:
-    config_file = "deltebot.yml"
+    config_file = "deletebot.yml"
   elif len(sys.argv) == 2:
     config_file = sys.argv[1]
   else:
