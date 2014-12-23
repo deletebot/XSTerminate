@@ -5,6 +5,7 @@ import os
 import time
 import urllib
 import urllib2
+import httplib
 import cookielib
 import getpass
 import signal
@@ -14,7 +15,7 @@ import yaml
 
 from BeautifulSoup import BeautifulSoup
 
-__version__ = "0.9.0"
+__version__ = "0.9.4"
 
 class DeleteBotError(Exception):
   pass
@@ -41,7 +42,7 @@ def set_exit_handler(func):
     signal.signal(signal.SIGINT, func)
 
 
-def setup():
+def setup(login_success):
   if len(sys.argv) == 1:
     config_file = "deletebot.yml"
   elif len(sys.argv) == 2:
@@ -126,10 +127,12 @@ def setup():
       afile.close()
 
     if login_good:
+      # was login successful once?
+      login_success = True
       print "Login successful."
     else:
       print "Bad login info."
-      raise SystemExit
+      return login_success
 
 
   def signal_handler(signal, frame):
@@ -166,7 +169,6 @@ def setup():
             tplt = "Changing setting '%s' to `%s`."
             print tplt % (setting, cfg[setting])
             config[setting] = cfg[setting]
-        
       except Exception, e:
         # don't crash if a good config has already loaded
         print "Problem reloading '%s'." % config_file
@@ -192,17 +194,23 @@ def setup():
         f = open("thread.html", "w")
         f.write(thread_html)
         f.close()
-    except IOError, e:
+    except (IOError, httplib.BadStatusLine), e:
       print 'Failed to open "%s".' % thread_url
       if hasattr(e, 'code'):
-        print 'Failed with error code - %s.' % e.code
+        print "Failed with error code - %s." % e.code
+      print "Trying again in 50 seconds."
+      print "     ", time.ctime()
+      time.sleep(50)
+      continue
 
     soup = BeautifulSoup(thread_html)
 
     if soup.findAll('a')[1].text == "login":
       print "Session terminated, logging in again in 50 seconds."
+      print "     ", time.ctime()
       time.sleep(50)
-      return
+      # can't get here without a sucessful login
+      return login_success
 
     user_links = soup.findAll('td', {'class': 'poster_info'})
     td_buttons = soup.findAll('td', {'class': 'td_buttons'})
@@ -235,10 +243,17 @@ def setup():
 
     time.sleep(config['sleep'])
 
+  # in principle, we never break the loop
+  return login_success
+
 def main():
   print "XSTerminate v%s" % __version__
+  login_success = False
   while True:
-    setup()
+    login_success = setup(login_success)
+    # break only if the first attempt failed
+    if login_success == False:
+      break
 
 if __name__ == "__main__":
   main()
