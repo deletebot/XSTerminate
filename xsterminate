@@ -41,8 +41,29 @@ def set_exit_handler(func):
     signal.signal(signal.SIGTERM, func)
     signal.signal(signal.SIGINT, func)
 
+def delete_link(button):
+  return button.findAll("a")[-2]["href"]
 
-def setup(login_success):
+def append_luser(deletes, luser, btn, thread_html):
+  try:
+    link = delete_link(btn)
+  except Exception, e:
+    crash_report(luser, thread_html, e)
+  link_list = [d[1] for d in deletes]
+  if link not in link_list:
+    deletes.append((luser, link))
+
+def crash_report(luser, thread_html, e):
+  with open("crashreport", "wa") as f:
+    f.write("============\nEXCEPTION\n\n")
+    f.write(str(e) + "\n\n")
+    f.write("Luser: %s\n\n" % luser)
+    f.write("--- HTML ---\n")
+    f.write(thread_html + "\n")
+    f.write("============\n")
+
+
+def run(login_success):
   if len(sys.argv) == 1:
     config_file = "deletebot.yml"
   elif len(sys.argv) == 2:
@@ -163,12 +184,12 @@ def setup(login_success):
       try:
         yml = open(config_file).read()
         cfg = yaml.load(yml)
-        can_change = ["sleep", "debug"]
+        can_change = ["sleep", "debug", "activity"]
         for setting in can_change:
-          if config[setting] != cfg[setting]:
+          if config.get(setting) != cfg.get(setting):
             tplt = "Changing setting '%s' to `%s`."
-            print tplt % (setting, cfg[setting])
-            config[setting] = cfg[setting]
+            print tplt % (setting, cfg.get(setting))
+            config[setting] = cfg.get(setting)
       except Exception, e:
         # don't crash if a good config has already loaded
         print "Problem reloading '%s'." % config_file
@@ -205,11 +226,22 @@ def setup(login_success):
 
     soup = BeautifulSoup(thread_html)
 
-    if soup.findAll('a')[1].text == "login":
-      print "Session terminated, logging in again in 50 seconds."
-      print "     ", time.ctime()
-      time.sleep(50)
-      # can't get here without a sucessful login
+    try:
+      if soup.findAll('a')[1].text == "login":
+        print "Session terminated, logging in again in 50 seconds."
+        print "     ", time.ctime()
+        time.sleep(50)
+        # can't get here without a sucessful login
+        return login_success
+    except IndexError:
+      print "Malformed response from server."
+      if login_success:
+        print "   Retrying in 120 seconds."
+        print "       ", time.ctime()
+        time.sleep(120)
+      else:
+        print "   Can't authenticate. Please try again in a few minutes."
+        print "       ", time.ctime()
       return login_success
 
     user_links = soup.findAll('td', {'class': 'poster_info'})
@@ -218,21 +250,38 @@ def setup(login_success):
     links_buttons = zip(user_links, td_buttons)
 
     deletes = []
+
+    try:
+      min_act = int(config['activity'])
+    except (ValueError, TypeError):
+      print "Setting 'activity' must be 0 or a positive integer."
+      print "---> Defaulting to 0."
+      min_act = 0
+    except KeyError:
+      if config['debug']:
+        print "Setting 'activity' not specified."
+        print "---> Defaulting to 0."
+      min_act = 0
+    if min_act > 0:
+      for lnk, btn in links_buttons:
+        smtxt = lnk.findAll('div', {'class': 'smalltext'})[0]
+        for i in smtxt.contents:
+          if "Activity" in i:
+            try:
+              act = int(i.split()[-1])
+            except (ValueError, TypeError), e:
+              crash_report(luser, thread_html, e)
+            if act < min_act:
+              links = lnk.findAll("a")
+              luser = links[0].text
+              append_luser(deletes, luser, btn, thread_html)
+            break
  
     for i, luser in enumerate(lusers):
       for lnk, btn in links_buttons:
         links = lnk.findAll("a")
         if luser == links[0].text:
-          try:
-            deletes.append((luser, btn.findAll("a")[-2]["href"]))
-          except Exception, e:
-            with open("crashreport", "wa") as f:
-              f.write("============\nEXCEPTION\n\n")
-              f.write(str(e) + "\n\n")
-              f.write("Luser: %s\n\n" % luser)
-              f.write("--- HTML ---\n")
-              f.write(thread_html + "\n")
-              f.write("============\n")
+          append_luser(deletes, luser, btn, thread_html)
       
     if deletes:
       for i, (u, d) in enumerate(deletes):
@@ -250,7 +299,7 @@ def main():
   print "XSTerminate v%s" % __version__
   login_success = False
   while True:
-    login_success = setup(login_success)
+    login_success = run(login_success)
     # break only if the first attempt failed
     if login_success == False:
       break
