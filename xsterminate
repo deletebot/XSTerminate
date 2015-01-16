@@ -15,7 +15,7 @@ import yaml
 
 from BeautifulSoup import BeautifulSoup
 
-__version__ = "0.9.4"
+__version__ = "0.9.8"
 
 class DeleteBotError(Exception):
   pass
