@@ -17,8 +17,8 @@ cookie information.
 
 ## Donations
 
-* BTC: 1HWu9Ant9CNmuJCG5MXi1z3F8F5Zi1o9sT
 * XST: SMFPrpKYQ6yxVesVEwNfQbsPCPveG6srBP
+* BTC: 1HWu9Ant9CNmuJCG5MXi1z3F8F5Zi1o9sT
 * LTC: LZ7Rkvz5LeisP2GRmvQhUxuewe45h6tDf3
 * DOGE: DLdew3KSaL9kL2cLC6Pv7hVzDULtkDcZ6
 
@@ -39,13 +39,14 @@ The file "deletebot.yml" is a yaml file with several settings.
 * password: the bitcointalk password (remove or make null for getpass)
 * topic: the bitcointalk topic number found in the topic url
 * lusers: the luser blacklist with one luser name per line
+* activity: users must have this minimal activity to post
 * sleep: be nice to bitcointalk by sleeping between thread reloads
 * cookiefile: the file wherein cookies are stored
 * debug: prints debug output if set to "true";
   omit or set to false if unwanted
 
 
-The settings "sleep" and "debug" can be changed in the config file
+The settings "activity", "sleep", "debug" can be changed in the config file
 while the bot is live and the bot will adjust its behavior
 upon the next reload of the thread messages.
 
@@ -61,6 +62,10 @@ password : null
 topic : 850210
 # file with username blacklist, one per line
 lusers : lusers.txt
+# minimum activity a user needs to post
+# see https://bitcointalk.org/index.php?topic=444292
+# can be modified while bot is live
+activity : 5
 
 # sleep this many seconds before reloading new messages
 # can be modified while bot is live
